@@ -3,6 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageMarker, { Marker, MarkerComponentProps } from 'react-image-marker';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Keyboard } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import styles from './ImageSlideshow.module.css';
 
 type Pin = {
@@ -375,6 +380,7 @@ export default function ImageSlideshow() {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageWrapperRef = useRef<HTMLDivElement>(null);
   const [hoveredPin, setHoveredPin] = useState<Pin | null>(null);
+  const swiperRef = useRef<any>(null);
 
   const currentImage = galleryMode.active 
     ? galleryMode.images[galleryMode.currentImage]
@@ -428,17 +434,21 @@ export default function ImageSlideshow() {
     if (isTransitioning) return;
     
     if (galleryMode.active) {
-      setIsTransitioning(true);
-      setGalleryMode(prev => ({
-        ...prev,
-        currentImage: (prev.currentImage + 1) % prev.images.length
-      }));
-      setTimeout(() => setIsTransitioning(false), 800);
+      if (swiperRef.current && swiperRef.current.swiper) {
+        swiperRef.current.swiper.slideNext();
+      }
     } else {
       setIsTransitioning(true);
       setCurrentIndex((prevIndex) => (prevIndex + 1) % slidesData.length);
       setTimeout(() => setIsTransitioning(false), 800);
     }
+  };
+
+  const handleSwiperSlideChange = (swiper: any) => {
+    setGalleryMode(prev => ({
+      ...prev,
+      currentImage: swiper.activeIndex
+    }));
   };
 
   const calculateZoomPosition = (pinX: number, pinY: number) => {
@@ -477,13 +487,17 @@ export default function ImageSlideshow() {
 
   const handleExitGallery = () => {
     if (isTransitioning) return;
-    setIsTransitioning(true);
+    
+    // Reset Swiper to first slide before exiting
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slideTo(0);
+    }
+    
     setGalleryMode({
       active: false,
       images: [],
       currentImage: 0
     });
-    setTimeout(() => setIsTransitioning(false), 800);
   };
 
   const getMarkersForCurrentSlide = (): Marker[] => {
@@ -529,56 +543,77 @@ export default function ImageSlideshow() {
     <div className={styles.mainContainer}>
       <div className={styles.container} ref={containerRef}>
         <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={galleryMode.active ? `gallery-${galleryMode.currentImage}` : `slide-${currentIndex}-${deviceType}`}
-            ref={imageWrapperRef}
-            initial={{ opacity: 0, scale: 1.2, filter: 'blur(8px)' }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1, 
-              filter: 'blur(0px)',
-              transition: {
-                duration: 0.8,
-                ease: [0.4, 0, 0.2, 1]
-              }
-            }}
-            exit={{ 
-              opacity: 0, 
-              scale: 1.1, 
-              filter: 'blur(8px)',
-              transition: {
-                duration: 0.6,
-                ease: [0.4, 0, 1, 1]
-              }
-            }}
-            className={`${styles.imageWrapper} ${isZoomed ? styles.zoomEffect : ''}`}
-            style={{ 
-              transform: isZoomed ? `scale(1.5) translate(${zoomPosition.x}px, ${zoomPosition.y}px)` : 'scale(1) translate(0, 0)',
-            }}
-          >
-            {!galleryMode.active && (
-              <>
-                <ImageMarker
-                  src={currentImage}
-                  markers={getMarkersForCurrentSlide()}
-                  markerComponent={CustomMarker}
-                  extraClass={styles.imageMarker}
-                />
-                <div className={styles.imageOverlay} />
-              </>
-            )}
-            {galleryMode.active && (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src={currentImage} 
-                  alt="Gallery"
-                  className={styles.galleryImage}
-                />
-                <div className={styles.imageOverlay} />
-              </>
-            )}
-          </motion.div>
+          {!galleryMode.active ? (
+            <motion.div
+              key={`slide-${currentIndex}-${deviceType}`}
+              ref={imageWrapperRef}
+              initial={{ opacity: 0, scale: 1.2, filter: 'blur(8px)' }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1, 
+                filter: 'blur(0px)',
+                transition: {
+                  duration: 0.8,
+                  ease: [0.4, 0, 0.2, 1]
+                }
+              }}
+              exit={{ 
+                opacity: 0, 
+                scale: 1.1, 
+                filter: 'blur(8px)',
+                transition: {
+                  duration: 0.6,
+                  ease: [0.4, 0, 1, 1]
+                }
+              }}
+              className={`${styles.imageWrapper} ${isZoomed ? styles.zoomEffect : ''}`}
+              style={{ 
+                transform: isZoomed ? `scale(1.5) translate(${zoomPosition.x}px, ${zoomPosition.y}px)` : 'scale(1) translate(0, 0)',
+              }}
+            >
+              <ImageMarker
+                src={currentImage}
+                markers={getMarkersForCurrentSlide()}
+                markerComponent={CustomMarker}
+                extraClass={styles.imageMarker}
+              />
+              <div className={styles.imageOverlay} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="gallery-swiper"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.gallerySwiperContainer}
+            >
+              <Swiper
+                ref={swiperRef}
+                modules={[Navigation, Pagination, Keyboard]}
+                spaceBetween={0}
+                slidesPerView={1}
+                navigation={true}
+                pagination={{ 
+                  clickable: true,
+                  dynamicBullets: true
+                }}
+                keyboard={{ enabled: true }}
+                onSlideChange={handleSwiperSlideChange}
+                className={styles.gallerySwiper}
+              >
+                {galleryMode.images.map((image, index) => (
+                  <SwiperSlide key={index} className={styles.gallerySlide}>
+                    <img 
+                      src={image} 
+                      alt={`Gallery image ${index + 1}`}
+                      className={styles.galleryImage}
+                    />
+                    <div className={styles.imageOverlay} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
@@ -653,7 +688,7 @@ export default function ImageSlideshow() {
         </div>
       )}
 
-      {/* Nueva capa para los controles */}
+      {/* Updated controls layer */}
       <div className={styles.controlsLayer}>
         <AnimatePresence>
           {hoveredPin && (
@@ -686,24 +721,15 @@ export default function ImageSlideshow() {
             <div className={styles.galleryInfo}>
               {galleryMode.currentImage + 1} / {galleryMode.images.length}
             </div>
-            <div className={styles.buttonContainer}>
-              <motion.button 
-                onClick={handleExitGallery}
-                className={styles.exitButton}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Exit
-              </motion.button>
-              <motion.button 
-                onClick={handleNext}
-                className={styles.nextButton}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Next
-              </motion.button>
-            </div>
+            <motion.button 
+              onClick={handleExitGallery}
+              className={styles.exitButton}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{ pointerEvents: 'auto' }}
+            >
+              Exit
+            </motion.button>
           </motion.div>
         )}
       </div>
