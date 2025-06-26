@@ -374,6 +374,7 @@ export default function ImageSlideshow() {
   const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const containerRef = useRef<HTMLDivElement>(null);
   const imageWrapperRef = useRef<HTMLDivElement>(null);
+  const [hoveredPin, setHoveredPin] = useState<Pin | null>(null);
 
   const currentImage = galleryMode.active 
     ? galleryMode.images[galleryMode.currentImage]
@@ -500,179 +501,212 @@ export default function ImageSlideshow() {
 
     if (!pin) return null;
 
+    const isCurrentPinHovered = hoveredPin?.x === pin.x && hoveredPin?.y === pin.y;
+
     return (
       <motion.div
         className={styles.pin}
-        initial={{ scale: 0, opacity: 0 }}
+        initial={{ opacity: 1 }}
         animate={{ 
-          scale: 1, 
-          opacity: 1,
-          transition: { delay: 0.8 + pinIndex * 0.2 }
-        }}
-        whileHover={{ 
-          scale: 1.3,
+          scale: isCurrentPinHovered ? 1.8 : 1,
+          opacity: hoveredPin ? (isCurrentPinHovered ? 1 : 0.5) : 1,
           transition: { duration: 0.2, ease: "easeOut" }
         }}
-        whileTap={{ scale: 0.95 }}
         onClick={() => !isTransitioning && handlePinClick(pin)}
+        onMouseEnter={() => {
+          setHoveredPin(pin);
+        }}
+        onMouseLeave={() => {
+          setHoveredPin(null);
+        }}
       >
-        <div className={styles.pinDot} />
-        <motion.div
-          className={styles.pinLabel}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-        >
-          {pin.label}
-        </motion.div>
+        <div className={`${styles.pinDot} ${hoveredPin && !isCurrentPinHovered ? styles.pinDotDimmed : ''}`} />
       </motion.div>
     );
   };
 
   return (
-    <div className={styles.container} ref={containerRef}>
-      <AnimatePresence initial={false} mode="wait">
-        <motion.div
-          key={galleryMode.active ? `gallery-${galleryMode.currentImage}` : `slide-${currentIndex}-${deviceType}`}
-          ref={imageWrapperRef}
-          initial={{ opacity: 0, scale: 1.2, filter: 'blur(8px)' }}
-          animate={{ 
-            opacity: 1, 
-            scale: 1, 
-            filter: 'blur(0px)',
-            transition: {
-              duration: 0.8,
-              ease: [0.4, 0, 0.2, 1]
-            }
-          }}
-          exit={{ 
-            opacity: 0, 
-            scale: 1.1, 
-            filter: 'blur(8px)',
-            transition: {
-              duration: 0.6,
-              ease: [0.4, 0, 1, 1]
-            }
-          }}
-          className={`${styles.imageWrapper} ${isZoomed ? styles.zoomEffect : ''}`}
-          style={{ 
-            transform: isZoomed ? `scale(1.5) translate(${zoomPosition.x}px, ${zoomPosition.y}px)` : 'scale(1) translate(0, 0)',
-          }}
-        >
-          {!galleryMode.active && (
-            <>
-              <ImageMarker
-                src={currentImage}
-                markers={getMarkersForCurrentSlide()}
-                markerComponent={CustomMarker}
-                extraClass={styles.imageMarker}
-              />
-              <div className={styles.imageOverlay} />
-            </>
-          )}
-          {galleryMode.active && (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={currentImage} 
-                alt="Gallery"
-                className={styles.galleryImage}
-              />
-              <div className={styles.imageOverlay} />
-            </>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      {!galleryMode.active && (
-        <AnimatePresence mode="wait">
-          <motion.div 
-            key={`content-${currentIndex}`}
-            initial={{ opacity: 0, x: -50, y: -20 }}
+    <div className={styles.mainContainer}>
+      <div className={styles.container} ref={containerRef}>
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={galleryMode.active ? `gallery-${galleryMode.currentImage}` : `slide-${currentIndex}-${deviceType}`}
+            ref={imageWrapperRef}
+            initial={{ opacity: 0, scale: 1.2, filter: 'blur(8px)' }}
             animate={{ 
               opacity: 1, 
-              x: 0,
-              y: 0,
+              scale: 1, 
+              filter: 'blur(0px)',
               transition: {
                 duration: 0.8,
-                delay: 0.2,
-                ease: [0.25, 0.46, 0.45, 0.94]
+                ease: [0.4, 0, 0.2, 1]
               }
             }}
             exit={{ 
               opacity: 0, 
-              x: -30,
-              y: -10,
+              scale: 1.1, 
+              filter: 'blur(8px)',
               transition: {
-                duration: 0.5,
-                ease: [0.55, 0.055, 0.675, 0.19]
+                duration: 0.6,
+                ease: [0.4, 0, 1, 1]
               }
             }}
-            className={styles.textContent}
+            className={`${styles.imageWrapper} ${isZoomed ? styles.zoomEffect : ''}`}
+            style={{ 
+              transform: isZoomed ? `scale(1.5) translate(${zoomPosition.x}px, ${zoomPosition.y}px)` : 'scale(1) translate(0, 0)',
+            }}
           >
-            <motion.h2 
-              className={styles.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ 
-                opacity: 1, 
-                y: 0,
-                transition: { 
-                  duration: 0.6, 
-                  delay: 0.4,
-                  ease: [0.25, 0.46, 0.45, 0.94]
-                }
-              }}
-              exit={{ 
-                opacity: 0, 
-                y: 10,
-                transition: { duration: 0.3 }
-              }}
-            >
-              {slidesData[currentIndex].title}
-            </motion.h2>
-            <motion.p 
-              className={styles.description}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ 
-                opacity: 1, 
-                y: 0,
-                transition: { 
-                  duration: 0.6, 
-                  delay: 0.6,
-                  ease: [0.25, 0.46, 0.45, 0.94]
-                }
-              }}
-              exit={{ 
-                opacity: 0, 
-                y: 10,
-                transition: { duration: 0.3 }
-              }}
-            >
-              {slidesData[currentIndex].description}
-            </motion.p>
+            {!galleryMode.active && (
+              <>
+                <ImageMarker
+                  src={currentImage}
+                  markers={getMarkersForCurrentSlide()}
+                  markerComponent={CustomMarker}
+                  extraClass={styles.imageMarker}
+                />
+                <div className={styles.imageOverlay} />
+              </>
+            )}
+            {galleryMode.active && (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={currentImage} 
+                  alt="Gallery"
+                  className={styles.galleryImage}
+                />
+                <div className={styles.imageOverlay} />
+              </>
+            )}
           </motion.div>
         </AnimatePresence>
+      </div>
+
+      {/* Capa para el título y descripción */}
+      {!galleryMode.active && (
+        <div className={styles.overlayLayer}>
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={`content-${currentIndex}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                transition: {
+                  duration: 0.8,
+                  delay: 0.2,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }
+              }}
+              exit={{ 
+                opacity: 0, 
+                y: 10,
+                transition: {
+                  duration: 0.5,
+                  ease: [0.55, 0.055, 0.675, 0.19]
+                }
+              }}
+              className={styles.textContent}
+            >
+              <motion.h2 
+                className={styles.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  transition: { 
+                    duration: 0.6, 
+                    delay: 0.4,
+                    ease: [0.25, 0.46, 0.45, 0.94]
+                  }
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  y: 10,
+                  transition: { duration: 0.3 }
+                }}
+              >
+                {slidesData[currentIndex].title}
+              </motion.h2>
+              <motion.p 
+                className={styles.description}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  transition: { 
+                    duration: 0.6, 
+                    delay: 0.6,
+                    ease: [0.25, 0.46, 0.45, 0.94]
+                  }
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  y: 10,
+                  transition: { duration: 0.3 }
+                }}
+              >
+                {slidesData[currentIndex].description}
+              </motion.p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       )}
 
-      {galleryMode.active ? (
-        <motion.div 
-          className={styles.galleryControls}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-        >
-          <div className={styles.galleryInfo}>
-            {galleryMode.currentImage + 1} / {galleryMode.images.length}
-          </div>
-          <div className={styles.buttonContainer}>
-            <motion.button 
-              onClick={handleExitGallery}
-              className={styles.exitButton}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+      {/* Nueva capa para los controles */}
+      <div className={styles.controlsLayer}>
+        <AnimatePresence>
+          {hoveredPin && (
+            <motion.div 
+              className={styles.pinLabelOverlay}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                transition: { duration: 0.3 }
+              }}
+              exit={{ 
+                opacity: 0, 
+                y: 10,
+                transition: { duration: 0.2 }
+              }}
             >
-              Exit
-            </motion.button>
+              {hoveredPin.label}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {galleryMode.active ? (
+          <motion.div 
+            className={styles.galleryControls}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            <div className={styles.galleryInfo}>
+              {galleryMode.currentImage + 1} / {galleryMode.images.length}
+            </div>
+            <div className={styles.buttonContainer}>
+              <motion.button 
+                onClick={handleExitGallery}
+                className={styles.exitButton}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Exit
+              </motion.button>
+              <motion.button 
+                onClick={handleNext}
+                className={styles.nextButton}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Next
+              </motion.button>
+            </div>
+          </motion.div>
+        ) : (
+          <div className={styles.buttonContainer}>
             <motion.button 
               onClick={handleNext}
               className={styles.nextButton}
@@ -682,19 +716,8 @@ export default function ImageSlideshow() {
               Next
             </motion.button>
           </div>
-        </motion.div>
-      ) : (
-        <div className={styles.buttonContainer}>
-          <motion.button 
-            onClick={handleNext}
-            className={styles.nextButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Next
-          </motion.button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 } 
