@@ -509,7 +509,11 @@ export default function ImageSlideshow() {
           opacity: 1,
           transition: { delay: 0.8 + pinIndex * 0.2 }
         }}
-        whileHover={{ scale: 1.2 }}
+        whileHover={{ 
+          scale: 1.3,
+          transition: { duration: 0.2, ease: "easeOut" }
+        }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => !isTransitioning && handlePinClick(pin)}
       >
         <div className={styles.pinDot} />
@@ -556,19 +560,26 @@ export default function ImageSlideshow() {
           }}
         >
           {!galleryMode.active && (
-            <ImageMarker
-              src={currentImage}
-              markers={getMarkersForCurrentSlide()}
-              markerComponent={CustomMarker}
-              extraClass={styles.imageMarker}
-            />
+            <>
+              <ImageMarker
+                src={currentImage}
+                markers={getMarkersForCurrentSlide()}
+                markerComponent={CustomMarker}
+                extraClass={styles.imageMarker}
+              />
+              <div className={styles.imageOverlay} />
+            </>
           )}
           {galleryMode.active && (
-            <img 
-              src={currentImage} 
-              alt="Gallery"
-              className={styles.galleryImage}
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={currentImage} 
+                alt="Gallery"
+                className={styles.galleryImage}
+              />
+              <div className={styles.imageOverlay} />
+            </>
           )}
         </motion.div>
       </AnimatePresence>
@@ -577,44 +588,64 @@ export default function ImageSlideshow() {
         <AnimatePresence mode="wait">
           <motion.div 
             key={`content-${currentIndex}`}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, x: -50, y: -20 }}
             animate={{ 
               opacity: 1, 
+              x: 0,
               y: 0,
               transition: {
-                duration: 0.7,
-                delay: 0.3,
-                ease: [0.4, 0, 0.2, 1]
+                duration: 0.8,
+                delay: 0.2,
+                ease: [0.25, 0.46, 0.45, 0.94]
               }
             }}
             exit={{ 
               opacity: 0, 
-              y: -20,
+              x: -30,
+              y: -10,
               transition: {
                 duration: 0.5,
-                ease: [0.4, 0, 1, 1]
+                ease: [0.55, 0.055, 0.675, 0.19]
               }
             }}
             className={styles.textContent}
           >
             <motion.h2 
               className={styles.title}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ 
                 opacity: 1, 
                 y: 0,
-                transition: { duration: 0.5, delay: 0.4 }
+                transition: { 
+                  duration: 0.6, 
+                  delay: 0.4,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }
+              }}
+              exit={{ 
+                opacity: 0, 
+                y: 10,
+                transition: { duration: 0.3 }
               }}
             >
               {slidesData[currentIndex].title}
             </motion.h2>
             <motion.p 
               className={styles.description}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ 
                 opacity: 1, 
                 y: 0,
-                transition: { duration: 0.5, delay: 0.5 }
+                transition: { 
+                  duration: 0.6, 
+                  delay: 0.6,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }
+              }}
+              exit={{ 
+                opacity: 0, 
+                y: 10,
+                transition: { duration: 0.3 }
               }}
             >
               {slidesData[currentIndex].description}
