@@ -1,0 +1,248 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background-color: #000;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.imageWrapper {
+  position: relative;
+  min-width: max-content;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.imageMarker {
+  height: 100vh;
+  width: auto;
+  max-height: 100vh;
+  min-width: 100vw;
+  object-fit: cover;
+}
+
+.galleryImage {
+  height: 100vh;
+  width: auto;
+  max-height: 100vh;
+  min-width: 100vw;
+  object-fit: cover;
+}
+
+.zoomEffect {
+  transition: transform 1s ease;
+}
+
+.pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 10;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+}
+
+.pinDot {
+  width: 16px;
+  height: 16px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+  border: 2px solid #ffffff;
+}
+
+.pinDot::after {
+  content: '';
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+.pinLabel {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  margin-bottom: 12px;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.textContent {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  color: white;
+  z-index: 2;
+}
+
+.title {
+  font-size: 2rem;
+  margin: 0 0 1rem;
+}
+
+.description {
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.buttonContainer {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 3;
+  display: flex;
+  gap: 1rem;
+}
+
+.nextButton,
+.exitButton {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.nextButton:hover,
+.exitButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.galleryControls {
+  position: fixed;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  z-index: 3;
+}
+
+.galleryInfo {
+  color: white;
+  font-size: 1.1rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  backdrop-filter: blur(5px);
+}
+
+@media (max-width: 768px) {
+  .container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .imageWrapper {
+    min-width: 100%;
+    width: max-content;
+    height: 100vh;
+  }
+
+  .imageMarker,
+  .galleryImage {
+    height: 100vh;
+    width: auto;
+    min-width: 100vw;
+    object-fit: cover;
+  }
+
+  .textContent {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+
+  .buttonContainer {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+
+  .galleryControls {
+    bottom: 1.5rem;
+    padding: 0 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .pinDot {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pinLabel {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    max-width: 120px;
+  }
+
+  .buttonContainer {
+    padding: 1rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .nextButton,
+  .exitButton {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    min-width: 100px;
+    border-radius: 8px;
+  }
+
+  .galleryInfo {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+} 
