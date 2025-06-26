@@ -676,7 +676,7 @@ export default function ImageSlideshow() {
           )}
         </AnimatePresence>
 
-        {galleryMode.active ? (
+        {galleryMode.active && (
           <motion.div 
             className={styles.galleryControls}
             initial={{ opacity: 0, y: 20 }}
@@ -705,17 +705,6 @@ export default function ImageSlideshow() {
               </motion.button>
             </div>
           </motion.div>
-        ) : (
-          <div className={styles.buttonContainer}>
-            <motion.button 
-              onClick={handleNext}
-              className={styles.nextButton}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Next
-            </motion.button>
-          </div>
         )}
       </div>
     </div>
